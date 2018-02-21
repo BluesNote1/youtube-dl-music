@@ -8,7 +8,7 @@ Cleans youtube-dl music files from hashes and common unwanted phrases, sorts all
 ## Description
   **NOTE:** Works with files *from youtube-dl* (with URL hash at the end of filename)
 <br>
-  * Removes all unnecessary filename parts in downloaded music,
+  * Removes all unnecessary filename parts in downloaded music
   * Arranges/Moves new filenames into corresponding artist directories 
   
   Define music directory for use, at the beginning of the script
