@@ -1,0 +1,84 @@
+#!/bin/bash
+
+# WARNING: The script is just a bash exercise, not meant to download actual music illegaly, use at your own risk 
+
+##
+#  1) Removes all unnecessary filename parts in downloaded music,
+#     in music dir defined below (ex: "~/Music/") (WORKS ONLY with files downloaded with youtube-dl!)
+#
+#  2) Arranges/Moves new filenames into corresponding artist directories 
+##
+
+# Backup dir: The script makes a backup copy of downloaded unsorted music for any mistakes (like: Runnning accidently twice or unexpected results).
+BAK_DIR=~/Desktop/Music_BACKUP
+
+# Music dir: The dir with music files to operate on
+MUSIC_DIR=~/Music/
+
+## Args Check
+if [ "$1" != "start" ]; then 
+	echo -en "\n      Usage: $(basename $0) start (to begin editing)\n\n 1) Edits by filtering all unnecessary filename parts in downloaded music, in \"MUSIC_DIR\" (defined in script file, default: "~/Music").\n    WORKS ONLY with files downloaded with youtube-dl! (with URL hash at the end of filename)\n\n 2) Moves new filenames into corresponding artist directories\n\nNOTE: The script makes a copy of downloaded unsorted music for any mistakes (like: Runnning accidently twice or unexpected results).\n      backup directory path is BAK_DIR (defined in script file, default: \"~/Desktop/Music_BACKUP\")\n\n"
+	exit 1
+fi
+
+# Changing to target dir
+if ! cd "$MUSIC_DIR"; then
+    echo -en "\n [!] Can't change to desired music directory\n\n"
+    exit 1
+fi
+
+## Checking for relevant files to work with
+ALLNUM="$(ls -1 *.* | wc -l)"
+if [ "$ALLNUM" = "0" ]; then
+	echo -en "\n [#] No music files with valid format extension.\n\n"
+	exit 0
+fi
+
+## Backing up all regular unsorted files
+echo -en '\n [#] Backing up unsorted pre-edited new music . . .\n'
+if [ -d "$BAK_DIR" ]; then 
+	cp -u *.* -t "$BAK_DIR" &> /dev/null && echo -en ' [#] Backup directory updated\n'
+else
+	mkdir "$BAK_DIR" && cp -u *.* -t "$BAK_DIR"/ &> /dev/null && echo -en ' [#] Backup directory created\n'
+fi
+
+## Filtering and Renaming filenames
+for (( i=1; i<=$ALLNUM; i++ )); do
+	# -S - Listed by file size, when files renaming happens, it won't change list order
+	FILENAME="$(ls -1 -S *.* | sed -n ${i}p)"
+
+# Sed expression with patterns for removal (NOTE: ADD MORE PATTAERNS TO REMOVE HERE!)
+
+# First 'if', works for 3 digit file extension
+    if [ "$(echo $FILENAME | sed -n '/.*\....$/p')" != "" ]; then 
+        mv "$FILENAME" "$(echo "$FILENAME" | sed 's/-...........\(\....\)$/\1/g' | sed -r 's/ᴴᴰ|\(?HQ\)?|\(?HD\)?|\(?hq\)?|\(?hd\)?|\[|\]|\(?Lyrics?\)?|\(?LYRICS\)?|\(?lyrics\)?|\(?1080p?P?\)?|Dubstep\ ?_?\ ?|\(?dubstep\)?|\(?DUBSTEP\)?|\(? ?U?u?n?O?o?fficial ?M?m?u?s?i?c?\)?|\(?V?v?ideo\)?|_|FLAC|\(A?a?udio\)|AMV|\+|\(?A?a?lbum V?v?ersion\)?|\(?F?f?ree D?d?ownload\)?|\(?F?f?ull\ A?a?lbum\)?//g' | sed 's/\ *\(\....\)$/\1/g' | sed -r 's/by|By|BY/-/g')"
+    fi
+
+# Second 'if', works for 4 digit file extension
+    if [ "$(echo $FILENAME | sed -n '/.*\.....$/p')" != "" ]; then 
+        mv "$FILENAME" "$(echo "$FILENAME" | sed 's/-...........\(\.....\)$/\1/g' | sed -r 's/ᴴᴰ|\(?HQ\)?|\(?HD\)?|\(?hq\)?|\(?hd\)?|\[|\]|\(?Lyrics?\)?|\(?LYRICS\)?|\(?lyrics\)?|\(?1080p?P?\)?|Dubstep\ ?_?\ ?|\(?dubstep\)?|\(?DUBSTEP\)?|\(? ?U?u?n?O?o?fficial ?M?m?u?s?i?c?\)?|\(?V?v?ideo\)?|_|FLAC|\(A?a?udio\)|AMV|\+|\(?A?a?lbum V?v?ersion\)?|\(?F?f?ree D?d?ownload\)?|\(?F?f?ull\ A?a?lbum\)?//g' | sed 's/\ *\(\.....\)$/\1/g' | sed -r 's/by|By|BY/-/g')"
+    fi
+
+done
+
+echo -en "\n [#] $ALLNUM filenames filtered and renamed\n"
+sleep 3
+
+## Moving new filenames into existent artist directories
+echo -en "\n [#] Sorting new filenames into matched artist directories . . .\n          (Starting in 3 seconds)\n\n"
+sleep 3
+
+DIRNUM="$(find . -type d | wc -l)"
+
+for (( i=2; i<=${DIRNUM}; i++ )); do
+	DIRNAME="$(find . -type d | tr -d './' | sed -n ${i}p | tr -d '\n')"
+	if find . -maxdepth 1 -type f -iname "*.*" | cut -c 3- | grep -i "$DIRNAME"; then 
+		find . -maxdepth 1 -type f -iregex ".*${DIRNAME}.*\.....?" -print0 | xargs -0 mv -t "./${DIRNAME}/"
+		echo ""
+	fi
+done
+
+LEFTOVER="$(find . -maxdepth 1 -type f -iregex '^.*\.....?$' | wc -l)"
+echo -en "\n [#] Total $((ALLNUM - LEFTOVER)) music files from ${ALLNUM} moved,\n     $LEFTOVER remaining music (should be HANDLED MANUALLY).\n\n"
+exit 0
+
