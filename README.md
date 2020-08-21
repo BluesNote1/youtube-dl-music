@@ -11,7 +11,7 @@ Cleans youtube-dl music files from hashes and common unwanted phrases, inserts a
   * Removes all unnecessary filename parts of downloaded music. 
   * Moves new filenames into corresponding artist directories. 
   
-  State which music directory to act upon as a script argument. 
+  Script makes changes to the working directory it was called from. 
 
 ## Usage Example
 ![Example](https://i.imgur.com/CeyCCHS.gif)
